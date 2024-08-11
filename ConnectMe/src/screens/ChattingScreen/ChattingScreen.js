@@ -95,6 +95,9 @@ const ChattingScreen = ({ route }) => {
   const goBack = () => {
     navigation.goBack();
   };
+  const handlecalling = () => {
+    navigation.navigate("CallingScreen");
+  };
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -113,15 +116,25 @@ const ChattingScreen = ({ route }) => {
           />
           <Text style={styles.headerTitle}>{name}</Text>
         </View>
+        <View style={styles.row}>
+          <TouchableOpacity onPress={handlecalling}>
+            <Icon
+              name="call"
+              type="material"
+              color={Colors.text.primary}
+              size={24}
+            />
+          </TouchableOpacity>
 
-        <TouchableOpacity>
-          <Icon
-            name="more-vert"
-            type="material"
-            color={Colors.text.primary}
-            size={24}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity style={{ marginLeft: 12 }}>
+            <Icon
+              name="more-vert"
+              type="material"
+              color={Colors.text.primary}
+              size={24}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
