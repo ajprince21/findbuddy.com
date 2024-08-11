@@ -1,23 +1,47 @@
-const User = require('../models/User');
+const User = require("../models/User");
+const bcrypt = require("bcrypt");
+const { generateToken } = require("../utils/jwt");
 
-// Get user profile
-exports.getProfile = async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id).select('-password');
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ error: 'Error fetching user profile' });
+// Register a new user
+exports.register = async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already in use" });
     }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ username, password: hashedPassword });
+
+    await newUser.save();
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "User registration failed", error });
+  }
 };
 
-// Update user profile
-exports.updateProfile = async (req, res) => {
-    const { userId, ...updates } = req.body;
-    try {
-        const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
-        res.json(updatedUser);
-    } catch (error) {
-        res.status(500).json({ error: 'Error updating profile' });
+// Login a user
+exports.login = async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    // Compare password with hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = generateToken(user._id);
+    res.json({ token, userId: user._id });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Login failed", error });
+  }
 };
