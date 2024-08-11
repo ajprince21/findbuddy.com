@@ -4,16 +4,46 @@ const { generateToken } = require("../utils/jwt");
 
 // Register a new user
 exports.register = async (req, res) => {
-  const { username, password } = req.body;
+  const {
+    firstName,
+    lastName,
+    username,
+    password,
+    email,
+    mobileNumber,
+    address,
+    settings,
+  } = req.body;
+
   try {
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ message: "Username already in use" });
     }
 
-    // Hash password
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+
+    const existingMobile = await User.findOne({ mobileNumber });
+    if (existingMobile) {
+      return res.status(400).json({ message: "Mobile number already in use" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, password: hashedPassword });
+
+    // Create a new user instance
+    const newUser = new User({
+      firstName,
+      lastName,
+      username,
+      password: hashedPassword,
+      email,
+      mobileNumber,
+      address,
+      settings: settings || {},
+    });
 
     await newUser.save();
     res.status(201).json({ message: "User registered successfully" });
