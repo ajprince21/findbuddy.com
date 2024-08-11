@@ -2,14 +2,22 @@ import { View, StyleSheet, ImageBackground } from "react-native";
 import React, { useState } from "react";
 import { Input, Button, Text } from "@rneui/themed";
 import styles from "./LoginScreen.styles";
+import API from "../../services/api/buddyapis";
 
 const LoginScreen = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    // Logic for handling login goes here
-    console.log("Logging in with", username, password);
+  const handleLogin = async () => {
+    try {
+      const response = await API.userLogin({
+        username,
+        password,
+      });
+      console.log(response.data);
+    } catch (error) {
+      console.log("ERROE", error);
+    }
   };
 
   return (
@@ -28,6 +36,7 @@ const LoginScreen = () => {
           containerStyle={styles.input}
           leftIcon={{ type: "font-awesome", name: "user" }}
           inputStyle={styles.inputStyle}
+          autoCapitalize={"none"}
         />
         <Input
           placeholder="Password"

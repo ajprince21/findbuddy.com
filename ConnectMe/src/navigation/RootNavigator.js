@@ -9,7 +9,7 @@ import RegisterScreen from "../screens/RegisterScreen";
 
 const RootNavigator = () => {
   const Stack = createNativeStackNavigator();
-  const isLoggedIn = false;
+  const isLoggedIn = true;
   return (
     <Stack.Navigator initialRouteName={isLoggedIn ? "Root" : "WelcomeScreen"}>
       <Stack.Screen
@@ -35,12 +35,16 @@ const RootNavigator = () => {
       <Stack.Screen
         name="LoginScreen"
         component={LoginScreen}
-        options={{ headerShown: false }}
+        options={{
+          title:""
+        }}
       />
       <Stack.Screen
         name="RegisterScreen"
         component={RegisterScreen}
-        options={{ headerShown: false }}
+        options={{
+          title:""
+        }}
       />
     </Stack.Navigator>
   );
