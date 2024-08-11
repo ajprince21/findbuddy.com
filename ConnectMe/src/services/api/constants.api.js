@@ -1,0 +1,5 @@
+import Config from "../config/default.env";
+
+// PORT AUTH
+export const API_USER_REGISTER = Config.MS_MY_BUDDY_PUBLIC + "/auth/register";
+export const API_USER_LOGIN = Config.MS_MY_BUDDY_PUBLIC + "/auth/login";
