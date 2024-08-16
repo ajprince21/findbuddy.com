@@ -1,25 +1,33 @@
-import { View, StyleSheet, ImageBackground } from "react-native";
+import { View, StyleSheet, ImageBackground, Alert } from "react-native";
 import React, { useState } from "react";
 import { Input, Button, Text } from "@rneui/themed";
 import styles from "./LoginScreen.styles";
-import API from "../../services/api/buddyapis";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../../services/thunks/authThunks";
+import { useNavigation } from "@react-navigation/native";
 
 const LoginScreen = () => {
+  const dispatch = useDispatch();
+  const isLoading = useSelector((state) => state.auth.loading);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigation = useNavigation();
 
   const handleLogin = async () => {
     try {
-      const response = await API.userLogin({
-        username,
-        password,
-      });
-      console.log(response.data);
-    } catch (error) {
-      console.log("ERROE", error);
+      const resultAction = dispatch(loginUser({ username, password }));
+
+      if (loginUser.fulfilled.match(resultAction)) {
+        navigation.navigate("root", {
+          screen: "ChattingScreen",
+        });
+      } else {
+        console.log("Failed to log in:", resultAction.error);
+      }
+    } catch (err) {
+      console.error("An error occurred during login:", err);
     }
   };
-
   return (
     <ImageBackground
       source={{ uri: "https://source.unsplash.com/random/1920x1080" }}
@@ -37,6 +45,7 @@ const LoginScreen = () => {
           leftIcon={{ type: "font-awesome", name: "user" }}
           inputStyle={styles.inputStyle}
           autoCapitalize={"none"}
+          accessibilityLabel="Username"
         />
         <Input
           placeholder="Password"
@@ -46,6 +55,7 @@ const LoginScreen = () => {
           containerStyle={styles.input}
           leftIcon={{ type: "font-awesome", name: "lock" }}
           inputStyle={styles.inputStyle}
+          accessibilityLabel="Password"
         />
         <Button
           title="Log In"

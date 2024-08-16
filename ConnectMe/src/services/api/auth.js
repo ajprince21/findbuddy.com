@@ -6,9 +6,6 @@ const registerUser = (params) => {
 };
 
 const userLogin = (params) => {
-  console.log(
-    "HEY this is called",API_USER_LOGIN
-  )
   return axios.post(API_USER_LOGIN, params);
 };
 
