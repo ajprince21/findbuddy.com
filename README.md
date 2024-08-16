@@ -47,4 +47,4 @@ To get started with the Buddy App, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone [repository-url]
+   git clone https://github.com/ajprince21/findbuddy.com.git
