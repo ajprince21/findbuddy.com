@@ -48,7 +48,6 @@ const chatSlice = createSlice({
       })
 
       // Send - Message
-
       .addCase(sendMessages.pending, (state, action) => {
         // If Pending
       })

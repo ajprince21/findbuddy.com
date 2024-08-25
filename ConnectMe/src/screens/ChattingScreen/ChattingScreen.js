@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,22 +11,22 @@ import {
 } from "react-native";
 import { Icon, Image } from "@rneui/themed";
 import Colors from "../../utlis/Colors";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import styles from "./ChattingScreen.style";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMessages, sendMessages } from "../../services/thunks/chatThunks";
 import { format } from "date-fns";
+import ChattingSkeleton from "./Skeleton";
 
 const ChattingScreen = ({ route }) => {
   const dispatch = useDispatch();
   const { user } = route.params;
   const messages = useSelector((state) => state.chat.messages);
+  const isLoading = useSelector((state) => state.chat.chatListLoading);
 
-  useFocusEffect(
-    useCallback(() => {
-      dispatch(fetchMessages(user?._id));
-    }, [])
-  );
+  useEffect(() => {
+    dispatch(fetchMessages(user?._id));
+  }, [user?._id]);
 
   const [inputMessage, setInputMessage] = useState("");
 
@@ -61,8 +61,9 @@ const ChattingScreen = ({ route }) => {
     navigation.goBack();
   };
   const handlecalling = () => {
-    navigation.navigate("CallingScreen");
+    navigation.navigate("CallingScreen", user);
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -98,18 +99,22 @@ const ChattingScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
-
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.messageList}
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-        automaticallyAdjustKeyboardInsets
-      />
+      {isLoading ? (
+        <ChattingSkeleton />
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.messageList}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
+          automaticallyAdjustKeyboardInsets
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}

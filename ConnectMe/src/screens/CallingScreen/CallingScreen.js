@@ -5,7 +5,7 @@ import { Icon } from "@rneui/themed";
 import Colors from "../../utlis/Colors";
 
 const CallingScreen = ({ navigation, route }) => {
-  const contactName = route?.params?.contactName || "John Doe";
+  const contactName = route?.params?.name;
 
   const handleEndCall = () => {
     // Handle ending the call, e.g., navigate back

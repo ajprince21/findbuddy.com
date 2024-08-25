@@ -26,8 +26,8 @@ export const loginUser = createAsyncThunk(
       const response = await authService.userLogin(userData);
       return response.data;
     } catch (error) {
-      console.log(error?.response?.data?.message);
-      Alert.alert(error.response?.data?.message);
+      console.log(error);
+      Alert.alert(error.message);
       return rejectWithValue(error.response?.data || "Login failed");
     }
   }

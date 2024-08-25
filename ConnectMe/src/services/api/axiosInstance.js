@@ -9,8 +9,9 @@ const axiosInstance = axios.create();
 
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YzEwN2M1NjcyNDE1NTFjMTAwNGQwMCIsImlhdCI6MTcyNDYwMDMxNSwiZXhwIjoxNzU2MTM2MzE1fQ.Md8tpoDStF06UQ7p3tmysLSxqc2ISckN96XEVNYkTJs";
+    const { store } = await import("../../../store/configureStore");
+    const state = store.getState();
+    const token = state.auth.token || "";
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

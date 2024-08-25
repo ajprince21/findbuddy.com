@@ -38,4 +38,6 @@ app.use("/api/messages", messageRoutes);
 // });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const LOCAL_IP = "192.168.8.101"; // Replace with your actual local IP
+server.listen(PORT, LOCAL_IP, () => console.log(`Server running on http://${LOCAL_IP}:${PORT}`));
+
