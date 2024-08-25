@@ -8,7 +8,7 @@ const ChatItem = ({ data }) => {
 
   const onPress = () => {
     navigation.navigate("ChattingScreen", {
-      name: "Ajay ",
+      user: data,
     });
   };
   return (

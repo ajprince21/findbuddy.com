@@ -13,6 +13,7 @@ const ChatScreen = () => {
   const [open, setOpen] = React.useState(false);
   const dispatch = useDispatch();
   const chatList = useSelector((state) => state.chat.chatList);
+
   useEffect(() => {
     dispatch(getUserChatList());
   }, []);

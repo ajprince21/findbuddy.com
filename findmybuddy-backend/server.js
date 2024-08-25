@@ -5,7 +5,7 @@ const cors = require("cors");
 const connectDB = require("./config/db"); // MongoDB connection
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
-// const messageRoutes = require("./routes/message");
+const messageRoutes = require("./routes/message");
 
 require("dotenv").config();
 
@@ -21,7 +21,7 @@ app.use(express.json());
 // Define Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-// app.use("/api/messages", messageRoutes);
+app.use("/api/messages", messageRoutes);
 
 // // Socket.IO events
 // io.on("connection", (socket) => {

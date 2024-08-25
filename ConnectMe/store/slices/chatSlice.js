@@ -1,10 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserChatList } from "../../src/services/thunks/chatThunks";
+import {
+  fetchMessages,
+  getUserChatList,
+} from "../../src/services/thunks/chatThunks";
 
 const initialState = {
   chatList: [],
   chatListLoading: false,
   error: null,
+  messages: [],
+  messagesLoading: false,
 };
 const chatSlice = createSlice({
   name: "chat",
@@ -23,6 +28,21 @@ const chatSlice = createSlice({
       .addCase(getUserChatList.rejected, (state, action) => {
         state.chatList = [];
         state.chatListLoading = false;
+        state.error = action.payload;
+      })
+      // Handling fetchMessages
+      .addCase(fetchMessages.pending, (state, action) => {
+        state.messages = [];
+        state.messagesLoading = true;
+      })
+      .addCase(fetchMessages.fulfilled, (state, action) => {
+        state.messages = action.payload;
+        state.messagesLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMessages.rejected, (state, action) => {
+        state.messages = [];
+        state.messagesLoading = false;
         state.error = action.payload;
       });
   },

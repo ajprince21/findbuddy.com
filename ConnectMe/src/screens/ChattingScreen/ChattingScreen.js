@@ -1,8 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   TextInput,
   TouchableOpacity,
@@ -12,55 +11,24 @@ import {
 } from "react-native";
 import { Icon, Image } from "@rneui/themed";
 import Colors from "../../utlis/Colors";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./ChattingScreen.style";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMessages } from "../../services/thunks/chatThunks";
 
 const ChattingScreen = ({ route }) => {
-  const [messages, setMessages] = useState([
-    { id: "1", text: "Hey there!", sender: "them", time: "10:00 AM" },
-    { id: "2", text: "Hi! How are you?", sender: "me", time: "10:01 AM" },
-    {
-      id: "3",
-      text: "I'm good, thanks! How about you?",
-      sender: "them",
-      time: "10:02 AM",
-    },
-    {
-      id: "4",
-      text: "I'm good, thanks! How about you?",
-      sender: "them",
-      time: "10:02 AM",
-    },
-    {
-      id: "5",
-      text: "I'm good, thanks! How about you?",
-      sender: "them",
-      time: "10:02 AM",
-    },
-    {
-      id: "6",
-      text: "I'm good, thanks! How about you?",
-      sender: "them",
-      time: "10:02 AM",
-    },
-    { id: "7", text: "Hi! How are you?", sender: "me", time: "10:01 AM" },
-    { id: "8", text: "Hi! How are you?", sender: "me", time: "10:01 AM" },
-    { id: "9", text: "Hi! How are you?", sender: "me", time: "10:01 AM" },
-    {
-      id: "10",
-      text: "I'm good, thanks! How about you?",
-      sender: "them",
-      time: "10:02 AM",
-    },
-    {
-      id: "11",
-      text: "I'm good, thanks! How about you?",
-      sender: "them",
-      time: "10:02 AM",
-    },
-  ]);
+  const dispatch = useDispatch();
+  const { user } = route.params;
+  const messages = useSelector((state) => state.chat.messages);
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(fetchMessages(user?._id));
+    }, [])
+  );
+
   const [inputMessage, setInputMessage] = useState("");
-  const { name } = route.params;
+
   const flatListRef = useRef(null);
   const navigation = useNavigation();
 
@@ -71,8 +39,8 @@ const ChattingScreen = ({ route }) => {
         item.sender === "me" ? styles.myMessage : styles.theirMessage,
       ]}
     >
-      <Text style={styles.messageText}>{item.text}</Text>
-      <Text style={styles.messageTime}>{item.time}</Text>
+      <Text style={styles.messageText}>{item.content}</Text>
+      <Text style={styles.messageTime}>{item.updated_at}</Text>
     </View>
   );
 
@@ -87,7 +55,6 @@ const ChattingScreen = ({ route }) => {
           minute: "2-digit",
         }),
       };
-      setMessages([...messages, newMessage]);
       setInputMessage("");
       flatListRef.current?.scrollToEnd({ animated: true });
     }
@@ -111,11 +78,8 @@ const ChattingScreen = ({ route }) => {
               size={32}
             />
           </TouchableOpacity>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/300" }}
-            style={styles.avatar}
-          />
-          <Text style={styles.headerTitle}>{name}</Text>
+          <Image source={{ uri: user?.avatarUrl }} style={styles.avatar} />
+          <Text style={styles.headerTitle}>{user?.name}</Text>
         </View>
         <View style={styles.row}>
           <TouchableOpacity onPress={handlecalling}>
@@ -160,7 +124,7 @@ const ChattingScreen = ({ route }) => {
           onChangeText={setInputMessage}
           placeholder="Type a message…"
         />
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+        <TouchableOpacity style={styles.sendButton}>
           <Icon name="send" type="material" color={Colors.primary} size={24} />
         </TouchableOpacity>
       </KeyboardAvoidingView>

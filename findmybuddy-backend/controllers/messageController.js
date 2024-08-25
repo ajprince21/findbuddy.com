@@ -3,29 +3,35 @@ const User = require("../models/users");
 
 // Send a message
 exports.sendMessage = async (req, res) => {
-  const { sender, receiver, content } = req.body;
-  const newMessage = new Message({ sender, receiver, content });
+  const sender_id = req?.user?._id || req?.user?.id;
+  const { receiver_id, content } = req.body;
+  const newMessage = new Message({ sender_id, receiver_id, content });
 
   try {
     await newMessage.save();
     res.status(201).json(newMessage);
   } catch (error) {
-    res.status(500).json({ error: "Error sending message" });
+    console.log(error);
+    res.status(500).json({ error: error.message });
   }
 };
 
 // Get messages
 exports.getMessages = async (req, res) => {
-  const { userId, buddyId } = req.params;
+  const buddyId = req.params.buddyId;
+  const userId = req?.user?._id || req?.user?.id;
   try {
     const messages = await Message.find({
       $or: [
-        { sender: userId, receiver: buddyId },
-        { sender: buddyId, receiver: userId },
+        { sender_id: userId, receiver_id: buddyId },
+        { sender_id: buddyId, receiver_id: userId },
       ],
-    }).sort({ timestamp: 1 });
-
-    res.json(messages);
+    }).sort({ created_at: 1 });
+    const updatedMessageData = messages.map((msg) => ({
+      ...msg.toObject(),
+      sender: msg.sender_id?.equals(userId) ? "me" : "them",
+    }));
+    res.json(updatedMessageData);
   } catch (error) {
     res.status(500).json({ error: "Error fetching messages" });
   }

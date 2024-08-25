@@ -14,3 +14,16 @@ export const getUserChatList = createAsyncThunk(
     }
   }
 );
+
+// Get user Messages
+export const fetchMessages = createAsyncThunk(
+  "chat/messages",
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await chatThunks.fetchMessages(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Error whiles fetching messages");
+    }
+  }
+);
