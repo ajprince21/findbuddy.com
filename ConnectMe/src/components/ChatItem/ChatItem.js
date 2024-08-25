@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { format } from "date-fns";
 
 const ChatItem = ({ data }) => {
   const { name, lastMessage, time, unreadCount, avatarUrl } = data;
@@ -17,7 +18,7 @@ const ChatItem = ({ data }) => {
       <View style={styles.contentContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.name}>{name}</Text>
-          <Text style={styles.time}>{time}</Text>
+          <Text style={styles.time}>{format(time, "HH MM")}</Text>
         </View>
         <View style={styles.messageContainer}>
           <Text style={styles.lastMessage} numberOfLines={1}>

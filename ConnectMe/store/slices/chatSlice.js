@@ -38,7 +38,7 @@ const chatSlice = createSlice({
       .addCase(fetchMessages.fulfilled, (state, action) => {
         state.messages = action.payload;
         state.messagesLoading = false;
-        state.error = action.payload;
+        state.error = null;
       })
       .addCase(fetchMessages.rejected, (state, action) => {
         state.messages = [];

@@ -1,6 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 import RootNavigator from "./src/navigation/RootNavigator";
-import { store } from "./store/configureStore";
+import { store, persistor } from "./store/configureStore";
+import { PersistGate } from "redux-persist/integration/react";
 import { Provider } from "react-redux";
 import { useDevToolsPluginClient } from "expo/devtools";
 import { useEffect } from "react";
@@ -17,9 +18,11 @@ export default function App() {
   }, []);
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <PersistGate loading={null} persistor={persistor}>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </PersistGate>
     </Provider>
   );
 }
