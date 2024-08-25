@@ -5,6 +5,7 @@ import styles from "./LoginScreen.styles";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../../services/thunks/authThunks";
 import { useNavigation } from "@react-navigation/native";
+import { LoadingOverlay } from "../../components";
 
 const LoginScreen = () => {
   const dispatch = useDispatch();
@@ -62,6 +63,7 @@ const LoginScreen = () => {
           onPress={handleLogin}
         />
       </View>
+      <LoadingOverlay visible={isLoading} />
     </ImageBackground>
   );
 };

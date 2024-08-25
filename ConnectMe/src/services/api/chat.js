@@ -1,5 +1,4 @@
 import { API_ENDPOINTS } from "./constants.api";
-import axios from "axios";
 import axiosInstance from "./axiosInstance";
 const getUserChatList = () => {
   return axiosInstance.get(API_ENDPOINTS.CHAT_LIST);

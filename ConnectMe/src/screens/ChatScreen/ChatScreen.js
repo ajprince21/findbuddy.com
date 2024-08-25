@@ -13,6 +13,8 @@ const ChatScreen = () => {
   const [open, setOpen] = React.useState(false);
   const dispatch = useDispatch();
   const chatList = useSelector((state) => state.chat.chatList);
+  const chatListLoading = useSelector((state) => state.chat.chatListLoading);
+  const error = useSelector((state) => state.chat.error);
 
   useEffect(() => {
     dispatch(getUserChatList());
@@ -29,6 +31,19 @@ const ChatScreen = () => {
       </View>
     );
   };
+
+  if (chatListLoading)
+    return (
+      <SafeAreaView style={Styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  if (error)
+    return (
+      <SafeAreaView style={Styles.container}>
+        <Text>Error...{error}</Text>
+      </SafeAreaView>
+    );
   return (
     <SafeAreaView style={Styles.container}>
       <HomeHeader />

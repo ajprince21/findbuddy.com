@@ -1,7 +1,11 @@
 import axios from "axios";
 import * as Device from "expo-device";
 
+
+
 const axiosInstance = axios.create();
+
+
 
 axiosInstance.interceptors.request.use(
   async (config) => {
