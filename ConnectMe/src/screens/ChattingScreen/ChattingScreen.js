@@ -15,6 +15,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./ChattingScreen.style";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMessages } from "../../services/thunks/chatThunks";
+import { format } from "date-fns";
 
 const ChattingScreen = ({ route }) => {
   const dispatch = useDispatch();
@@ -40,7 +41,7 @@ const ChattingScreen = ({ route }) => {
       ]}
     >
       <Text style={styles.messageText}>{item.content}</Text>
-      <Text style={styles.messageTime}>{item.updated_at}</Text>
+      <Text style={styles.messageTime}>{format(item.updated_at, "HH MM")}</Text>
     </View>
   );
 
