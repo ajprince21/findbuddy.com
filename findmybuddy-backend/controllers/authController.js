@@ -1,19 +1,26 @@
-const User = require("../models/User");
+const User = require("../models/users");
 const bcrypt = require("bcrypt");
 const { generateToken } = require("../utils/jwt");
 
 // Register a new user
 exports.register = async (req, res) => {
   const {
-    firstName,
-    lastName,
     username,
+    first_name,
+    last_name,
     password,
     email,
-    mobileNumber,
-    address,
+    profile_picture,
+    bio,
     settings,
   } = req.body;
+
+  // Validate input
+  if (!username || !password || !email) {
+    return res
+      .status(400)
+      .json({ message: "Username, email, and password are required." });
+  }
 
   try {
     const existingUser = await User.findOne({ username });
@@ -26,22 +33,17 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "Email already in use" });
     }
 
-    const existingMobile = await User.findOne({ mobileNumber });
-    if (existingMobile) {
-      return res.status(400).json({ message: "Mobile number already in use" });
-    }
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new user instance
     const newUser = new User({
-      firstName,
-      lastName,
       username,
-      password: hashedPassword,
+      first_name,
+      last_name,
+      password_hash: hashedPassword,
       email,
-      mobileNumber,
-      address,
+      profile_picture: profile_picture || "",
+      bio: bio || "",
       settings: settings || {},
     });
 
@@ -49,13 +51,23 @@ exports.register = async (req, res) => {
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Registration error:", error);
-    res.status(500).json({ message: "User registration failed", error });
+    res
+      .status(500)
+      .json({ message: "User registration failed", error: error.message });
   }
 };
 
 // Login a user
 exports.login = async (req, res) => {
   const { username, password } = req.body;
+
+  // Validate input
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ message: "Username and password are required." });
+  }
+
   try {
     const user = await User.findOne({ username });
     if (!user) {
@@ -63,15 +75,15 @@ exports.login = async (req, res) => {
     }
 
     // Compare password with hashed password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const token = generateToken(user._id);
-    res.json({ token, userId: user._id });
+    res.json({ token, user });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "Login failed", error });
+    res.status(500).json({ message: "Login failed" });
   }
 };

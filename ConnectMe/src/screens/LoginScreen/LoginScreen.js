@@ -15,8 +15,7 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const resultAction = dispatch(loginUser({ username, password }));
-
+      const resultAction = await dispatch(loginUser({ username, password }));
       if (loginUser.fulfilled.match(resultAction)) {
         navigation.navigate("root", {
           screen: "ChattingScreen",

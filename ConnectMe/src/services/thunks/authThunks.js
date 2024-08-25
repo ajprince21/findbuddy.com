@@ -2,6 +2,8 @@
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import authService from "../api/auth";
+import Toast from "react-native-toast-message";
+import { Alert } from "react-native";
 
 // Async thunk for registration
 export const registerUser = createAsyncThunk(
@@ -24,6 +26,8 @@ export const loginUser = createAsyncThunk(
       const response = await authService.userLogin(userData);
       return response.data;
     } catch (error) {
+      console.log(error?.response?.data?.message);
+      Alert.alert(error.response?.data?.message);
       return rejectWithValue(error.response?.data || "Login failed");
     }
   }

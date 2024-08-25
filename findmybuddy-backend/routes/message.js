@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post('/send', authMiddleware, sendMessage);
 router.get('/:userId/:buddyId', authMiddleware, getMessages);
-router.get('/chatlist', authMiddleware, getChatList);
+router.get('/:userId/chats', authMiddleware, getChatList);
 
 module.exports = router;

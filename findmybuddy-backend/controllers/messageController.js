@@ -1,5 +1,5 @@
-const Message = require("../models/Message");
-const User = require("../models/User");
+const Message = require("../models/messages");
+const User = require("../models/users");
 
 // Send a message
 exports.sendMessage = async (req, res) => {
@@ -33,15 +33,13 @@ exports.getMessages = async (req, res) => {
 
 // Get user chat list
 exports.getChatList = async (req, res) => {
-  const userId = req.user.id; // Extract user ID from the authenticated request
+  const userId = req.user.id;
 
   try {
-    // Find messages where the user is either the sender or receiver
     const messages = await Message.find({
       $or: [{ sender: userId }, { receiver: userId }],
-    }).sort({ timestamp: -1 }); // Sort messages by the most recent first
+    }).sort({ timestamp: -1 });
 
-    // Create a map to aggregate chats
     const chatMap = new Map();
 
     messages.forEach((msg) => {
@@ -68,25 +66,31 @@ exports.getChatList = async (req, res) => {
       }
     });
 
-    // Convert map to array and populate user details
-    const chatList = await Promise.all(
-      Array.from(chatMap.keys()).map(async (id) => {
-        const user = await User.findById(id).select("username profileImage");
-        const chatDetails = chatMap.get(id);
-        // Return structured chat information
-        return {
-          id: chatDetails.id,
-          name: user.username,
-          lastMessage: chatDetails.lastMessage,
-          time: new Date(chatDetails.timestamp).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          unreadCount: chatDetails.unreadCount,
-          avatarUrl: user.profileImage,
-        };
-      })
+    // Fetch users' details in a single query
+    const contactIds = Array.from(chatMap.keys());
+    const users = await User.find({ _id: { $in: contactIds } }).select(
+      "username profileImage"
     );
+
+    // Create a mapping from user ID to user object for quick lookup
+    const userMap = new Map();
+    users.forEach((user) => userMap.set(user._id.toString(), user));
+
+    // Convert map to array and populate user details
+    const chatList = Array.from(chatMap.values()).map((chatDetails) => {
+      const user = userMap.get(chatDetails.id.toString());
+      return {
+        id: chatDetails.id,
+        name: user ? user.username : "Unknown User",
+        lastMessage: chatDetails.lastMessage,
+        time: new Date(chatDetails.timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        unreadCount: chatDetails.unreadCount,
+        avatarUrl: user ? user.profileImage : null,
+      };
+    });
 
     // Sort the final chat list by timestamp (descending)
     chatList.sort((a, b) => new Date(b.time) - new Date(a.time));
