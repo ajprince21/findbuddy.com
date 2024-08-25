@@ -9,7 +9,11 @@ exports.sendMessage = async (req, res) => {
 
   try {
     await newMessage.save();
-    res.status(201).json(newMessage);
+    const response = {
+      ...newMessage.toObject(),
+      sender: newMessage.sender_id?.equals(sender_id) ? "me" : "them",
+    }
+    res.status(201).json(response);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });

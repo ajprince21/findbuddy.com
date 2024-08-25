@@ -14,7 +14,7 @@ import Colors from "../../utlis/Colors";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./ChattingScreen.style";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMessages } from "../../services/thunks/chatThunks";
+import { fetchMessages, sendMessages } from "../../services/thunks/chatThunks";
 import { format } from "date-fns";
 
 const ChattingScreen = ({ route }) => {
@@ -48,14 +48,10 @@ const ChattingScreen = ({ route }) => {
   const sendMessage = () => {
     if (inputMessage.trim().length > 0) {
       const newMessage = {
-        id: Date.now().toString(),
-        text: inputMessage.trim(),
-        sender: "me",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        receiver_id: user._id,
+        content: inputMessage.trim(),
       };
+      dispatch(sendMessages(newMessage));
       setInputMessage("");
       flatListRef.current?.scrollToEnd({ animated: true });
     }
@@ -107,7 +103,7 @@ const ChattingScreen = ({ route }) => {
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         contentContainerStyle={styles.messageList}
         onContentSizeChange={() =>
           flatListRef.current?.scrollToEnd({ animated: true })
@@ -125,7 +121,7 @@ const ChattingScreen = ({ route }) => {
           onChangeText={setInputMessage}
           placeholder="Type a message…"
         />
-        <TouchableOpacity style={styles.sendButton}>
+        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
           <Icon name="send" type="material" color={Colors.primary} size={24} />
         </TouchableOpacity>
       </KeyboardAvoidingView>

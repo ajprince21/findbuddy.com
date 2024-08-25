@@ -26,3 +26,16 @@ export const fetchMessages = createAsyncThunk(
     }
   }
 );
+
+// Send  Messages
+export const sendMessages = createAsyncThunk(
+  "chat/send-messages",
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await chatApi.sendMessages(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Error whiles fetching messages");
+    }
+  }
+);

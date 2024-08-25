@@ -9,7 +9,13 @@ const fetchMessages = (user_id) => {
   return axiosInstance.get(url);
 };
 
+const sendMessages = (params) => {
+  const url = `${API_ENDPOINTS.SEND_MESSAGE}`;
+  return axiosInstance.post(url, params);
+};
+
 export default {
   getUserChatList,
   fetchMessages,
+  sendMessages,
 };
