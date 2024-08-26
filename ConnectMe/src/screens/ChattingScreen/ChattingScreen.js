@@ -18,6 +18,9 @@ import { fetchMessages } from "../../services/thunks/chatThunks";
 import { format } from "date-fns";
 import ChattingSkeleton from "./Skeleton";
 import io from "socket.io-client";
+import { addMessage } from "../../../store/slices/chatSlice";
+import Config from "../../../src/services/config/default.env";
+const { MS_MY_BUDDY_PUBLIC } = Config;
 
 const ChattingScreen = ({ route }) => {
   const dispatch = useDispatch();
@@ -29,6 +32,7 @@ const ChattingScreen = ({ route }) => {
   const [inputMessage, setInputMessage] = useState("");
   const flatListRef = useRef(null);
   const navigation = useNavigation();
+  const [typing, setTyping] = useState(false);
 
   useEffect(() => {
     dispatch(fetchMessages(user?._id));
@@ -36,19 +40,17 @@ const ChattingScreen = ({ route }) => {
 
   useEffect(() => {
     const setupSocket = async () => {
-      socket.current = io("http://192.168.17.108:3000", {
+      socket.current = io(MS_MY_BUDDY_PUBLIC, {
         query: { token },
       });
 
       socket.current.emit("joinRoom", user._id);
 
       socket.current.on("receive_message", (newMessage) => {
-        console.log({ newMessage });
-        // Add received message to store  state
+        dispatch(addMessage(newMessage));
       });
       socket.current.on("typing", ({ isTyping, userId }) => {
-        console.log("Typing ...", isTyping, userId);
-        // Add received message to store  state
+        setTyping(isTyping);
       });
 
       return () => {
@@ -119,7 +121,10 @@ const ChattingScreen = ({ route }) => {
             />
           </TouchableOpacity>
           <Image source={{ uri: user?.avatarUrl }} style={styles.avatar} />
-          <Text style={styles.headerTitle}>{user?.name}</Text>
+          <View>
+            <Text style={styles.headerTitle}>{user?.name}</Text>
+            {typing && <Text style={styles.typing}>typing...</Text>}
+          </View>
         </View>
         <View style={styles.row}>
           <TouchableOpacity onPress={handlecalling}>

@@ -23,6 +23,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     paddingLeft: 8,
   },
+  typing: {
+    color: "green",
+    fontSize: 10,
+    fontWeight: "400",
+    paddingLeft: 12,
+  },
   messageList: {
     paddingHorizontal: 10,
     paddingVertical: 5,
