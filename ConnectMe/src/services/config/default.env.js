@@ -2,7 +2,7 @@
 let MS_MY_BUDDY_PUBLIC;
 const ENV = "local";
 if (ENV === "local") {
-  MS_MY_BUDDY_PUBLIC = `http://192.168.8.101:3000`;
+  MS_MY_BUDDY_PUBLIC = `http://192.168.17.108:3000`;
 }
 export default {
   NODE_ENV: "development",

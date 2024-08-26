@@ -6,6 +6,7 @@ const connectDB = require("./config/db"); // MongoDB connection
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const messageRoutes = require("./routes/message");
+const socketHandler = require("./socket/socketHandler");
 
 require("dotenv").config();
 
@@ -23,21 +24,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 
-// // Socket.IO events
-// io.on("connection", (socket) => {
-//   console.log("New client connected", socket.id);
-
-//   socket.on("send_message", (messageData) => {
-//     // Save message to DB here if needed
-//     io.to(messageData.receiver).emit("receive_message", messageData);
-//   });
-
-//   socket.on("disconnect", () => {
-//     console.log("Client disconnected", socket.id);
-//   });
-// });
+// Socket.IO events
+socketHandler(io);
 
 const PORT = process.env.PORT || 5000;
-const LOCAL_IP = "192.168.8.101"; // Replace with your actual local IP
-server.listen(PORT, LOCAL_IP, () => console.log(`Server running on http://${LOCAL_IP}:${PORT}`));
-
+const LOCAL_IP = "192.168.17.108"; // Replace with your actual local IP
+server.listen(PORT, LOCAL_IP, () =>
+  console.log(`Server running on http://${LOCAL_IP}:${PORT}`)
+);

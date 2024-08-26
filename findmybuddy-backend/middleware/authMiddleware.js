@@ -10,7 +10,6 @@ const authMiddleware = (req, res, next) => {
     req.user = verified;
     next();
   } catch (error) {
-    console.log("HYE 1", error)
     res.status(400).json({ message: error.message });
   }
 };

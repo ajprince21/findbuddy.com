@@ -14,55 +14,97 @@ import Colors from "../../utlis/Colors";
 import { useNavigation } from "@react-navigation/native";
 import styles from "./ChattingScreen.style";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMessages, sendMessages } from "../../services/thunks/chatThunks";
+import { fetchMessages } from "../../services/thunks/chatThunks";
 import { format } from "date-fns";
 import ChattingSkeleton from "./Skeleton";
+import io from "socket.io-client";
 
 const ChattingScreen = ({ route }) => {
   const dispatch = useDispatch();
+  const socket = useRef();
   const { user } = route.params;
+  const token = useSelector((state) => state.auth.token);
   const messages = useSelector((state) => state.chat.messages);
   const isLoading = useSelector((state) => state.chat.chatListLoading);
+  const [inputMessage, setInputMessage] = useState("");
+  const flatListRef = useRef(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     dispatch(fetchMessages(user?._id));
   }, [user?._id]);
 
-  const [inputMessage, setInputMessage] = useState("");
+  useEffect(() => {
+    const setupSocket = async () => {
+      socket.current = io("http://192.168.17.108:3000", {
+        query: { token },
+      });
 
-  const flatListRef = useRef(null);
-  const navigation = useNavigation();
+      socket.current.emit("joinRoom", user._id);
 
-  const renderMessage = ({ item }) => (
-    <View
-      style={[
-        styles.messageBubble,
-        item.sender === "me" ? styles.myMessage : styles.theirMessage,
-      ]}
-    >
-      <Text style={styles.messageText}>{item.content}</Text>
-      <Text style={styles.messageTime}>{format(item.updated_at, "HH MM")}</Text>
-    </View>
-  );
+      socket.current.on("receive_message", (newMessage) => {
+        console.log({ newMessage });
+        // Add received message to store  state
+      });
+      socket.current.on("typing", ({ isTyping, userId }) => {
+        console.log("Typing ...", isTyping, userId);
+        // Add received message to store  state
+      });
+
+      return () => {
+        if (socket.current) {
+          socket.current.off("receive_message");
+          socket.current.off("typing");
+          socket.current.disconnect();
+        }
+      };
+    };
+
+    setupSocket();
+  }, [dispatch, user._id]);
+
+  useEffect(() => {
+    if (inputMessage) {
+      socket.current.emit("typing", { receiver_id: user._id, isTyping: true });
+    } else {
+      socket.current.emit("typing", { receiver_id: user._id, isTyping: false });
+    }
+  }, [inputMessage]);
 
   const sendMessage = () => {
-    if (inputMessage.trim().length > 0) {
-      const newMessage = {
-        receiver_id: user._id,
-        content: inputMessage.trim(),
+    if (inputMessage.trim()) {
+      const messageData = {
+        content: inputMessage,
+        receiver_id: route.params.user._id,
       };
-      dispatch(sendMessages(newMessage));
+      socket.current.emit("send_message", messageData);
       setInputMessage("");
       flatListRef.current?.scrollToEnd({ animated: true });
     }
   };
-
   const goBack = () => {
     navigation.goBack();
   };
   const handlecalling = () => {
     navigation.navigate("CallingScreen", user);
   };
+
+  const renderMessage = useCallback(
+    ({ item }) => (
+      <View
+        style={[
+          styles.messageBubble,
+          item.sender === "me" ? styles.myMessage : styles.theirMessage,
+        ]}
+      >
+        <Text style={styles.messageText}>{item.content}</Text>
+        <Text style={styles.messageTime}>
+          {format(new Date(item.updated_at), "HH:mm")}
+        </Text>
+      </View>
+    ),
+    []
+  );
 
   return (
     <SafeAreaView style={styles.container}>
