@@ -1,5 +1,9 @@
 const Message = require("../models/messages");
 const User = require("../models/users");
+const mongoose = require("mongoose");
+
+const DEFAULT_LIMIT = 10;
+const DEFAULT_SKIP = 0;
 
 // Send a message
 exports.sendMessage = async (req, res) => {
@@ -12,7 +16,7 @@ exports.sendMessage = async (req, res) => {
     const response = {
       ...newMessage.toObject(),
       sender: newMessage.sender_id?.equals(sender_id) ? "me" : "them",
-    }
+    };
     res.status(201).json(response);
   } catch (error) {
     console.log(error);
@@ -24,13 +28,23 @@ exports.sendMessage = async (req, res) => {
 exports.getMessages = async (req, res) => {
   const buddyId = req.params.buddyId;
   const userId = req?.user?._id || req?.user?.id;
+  const limit = Math.max(0, parseInt(req.query.limit)) || DEFAULT_LIMIT;
+  const skip = Math.max(0, parseInt(req.query.skip)) || DEFAULT_SKIP;
   try {
     const messages = await Message.find({
       $or: [
         { sender_id: userId, receiver_id: buddyId },
         { sender_id: buddyId, receiver_id: userId },
       ],
-    }).sort({ created_at: 1 });
+    })
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    if (messages.length === 0) {
+      return res.json([]);
+    }
+
     const updatedMessageData = messages.map((msg) => ({
       ...msg.toObject(),
       sender: msg.sender_id?.equals(userId) ? "me" : "them",
@@ -38,6 +52,27 @@ exports.getMessages = async (req, res) => {
     res.json(updatedMessageData);
   } catch (error) {
     res.status(500).json({ error: "Error fetching messages" });
+  }
+};
+
+// Get User Message count
+
+exports.getMessageCount = async (req, res) => {
+  const buddyId = req.params.buddyId;
+  const userId = req?.user?._id || req?.user?.id;
+  if (!mongoose.isValidObjectId(buddyId) || !mongoose.isValidObjectId(userId)) {
+    return res.status(400).json({ error: "Invalid user IDs provided." });
+  }
+  try {
+    const total = await Message.countDocuments({
+      $or: [
+        { sender_id: userId, receiver_id: buddyId },
+        { sender_id: buddyId, receiver_id: userId },
+      ],
+    });
+    res.json({ total });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve message count." });
   }
 };
 
