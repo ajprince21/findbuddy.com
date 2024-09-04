@@ -8,17 +8,26 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Icon, Image } from "@rneui/themed";
 import Colors from "../../utlis/Colors";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./ChattingScreen.style";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMessages } from "../../services/thunks/chatThunks";
+import {
+  fetchMessages,
+  fetchMessagesCount,
+} from "../../services/thunks/chatThunks";
 import { format } from "date-fns";
 import ChattingSkeleton from "./Skeleton";
 import io from "socket.io-client";
-import { addMessage } from "../../../store/slices/chatSlice";
+import {
+  addMessage,
+  resetMessage,
+  setLoading,
+} from "../../../store/slices/chatSlice";
 import Config from "../../../src/services/config/default.env";
 const { MS_MY_BUDDY_PUBLIC } = Config;
 
@@ -27,16 +36,37 @@ const ChattingScreen = ({ route }) => {
   const socket = useRef();
   const { user } = route.params;
   const token = useSelector((state) => state.auth.token);
+  const loggedInUser = useSelector((state) => state.auth.user);
   const messages = useSelector((state) => state.chat.messages);
+  const hasMoreMessages = useSelector((state) => state.chat.hasMoreMessages);
   const isLoading = useSelector((state) => state.chat.chatListLoading);
+  const isLoadingMore = useSelector((state) => state.chat.loadingMore);
+  const totalMessage = useSelector((state) => state.chat.totalMessage);
   const [inputMessage, setInputMessage] = useState("");
   const flatListRef = useRef(null);
   const navigation = useNavigation();
   const [typing, setTyping] = useState(false);
+  const [skip, setSkip] = useState(0);
+  const [loading, seIstLoading] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchMessages(user?._id));
-  }, [user?._id]);
+    const params = {
+      user_id: user?._id,
+      limit: 15,
+      skip: skip,
+    };
+    dispatch(setLoading(true));
+
+    dispatch(fetchMessages(params));
+  }, [user._id, dispatch, skip]);
+
+  useEffect(() => {
+    dispatch(
+      fetchMessagesCount({
+        user_id: user?._id,
+      })
+    );
+  }, [user._id]);
 
   useEffect(() => {
     const setupSocket = async () => {
@@ -44,11 +74,16 @@ const ChattingScreen = ({ route }) => {
         query: { token },
       });
 
-      socket.current.emit("joinRoom", user._id);
+      socket.current.emit("joinRoom", loggedInUser._id);
 
       socket.current.on("receive_message", (newMessage) => {
         dispatch(addMessage(newMessage));
       });
+
+      socket.current.on("sent_message", (sentMessage) => {
+        dispatch(addMessage(sentMessage));
+      });
+
       socket.current.on("typing", ({ isTyping, userId }) => {
         setTyping(isTyping);
       });
@@ -66,12 +101,32 @@ const ChattingScreen = ({ route }) => {
   }, [dispatch, user._id]);
 
   useEffect(() => {
+    const onBeforeRemove = (event) => {
+      dispatch(resetMessage());
+      return;
+    };
+
+    const unsubscribe = navigation.addListener("beforeRemove", onBeforeRemove);
+    return () => {
+      unsubscribe();
+    };
+  }, [navigation]);
+
+  useEffect(() => {
     if (inputMessage) {
       socket.current.emit("typing", { receiver_id: user._id, isTyping: true });
     } else {
       socket.current.emit("typing", { receiver_id: user._id, isTyping: false });
     }
   }, [inputMessage]);
+
+  useEffect(() => {
+    if (loading) {
+      setTimeout(() => {
+        seIstLoading(false);
+      }, 500);
+    }
+  }, [loading]);
 
   const sendMessage = () => {
     if (inputMessage.trim()) {
@@ -81,9 +136,22 @@ const ChattingScreen = ({ route }) => {
       };
       socket.current.emit("send_message", messageData);
       setInputMessage("");
-      flatListRef.current?.scrollToEnd({ animated: true });
+      flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
     }
   };
+
+  const onStartReached = () => {
+    if (
+      !isLoadingMore &&
+      hasMoreMessages &&
+      !loading &&
+      messages?.length < totalMessage
+    ) {
+      seIstLoading(true);
+      setSkip((prevSkip) => prevSkip + 15);
+    }
+  };
+
   const goBack = () => {
     navigation.goBack();
   };
@@ -105,11 +173,11 @@ const ChattingScreen = ({ route }) => {
         </Text>
       </View>
     ),
-    []
+    [messages]
   );
 
-  return (
-    <SafeAreaView style={styles.container}>
+  const header = useCallback(() => {
+    return (
       <View style={styles.header}>
         <View style={styles.row}>
           <TouchableOpacity onPress={goBack}>
@@ -146,22 +214,41 @@ const ChattingScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
-      {isLoading ? (
-        <ChattingSkeleton />
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.messageList}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
-          automaticallyAdjustKeyboardInsets
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+    );
+  }, [user]);
+
+  const renderFooter = useCallback(() => {
+    return <View>{(isLoadingMore || loading) && <ActivityIndicator />}</View>;
+  }, [isLoadingMore, loading]);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {header()}
+      <View
+        style={{
+          flex: 1,
+        }}
+      >
+        {isLoading ? (
+          <ChattingSkeleton />
+        ) : (
+          <View>
+            <FlatList
+              inverted
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={styles.messageList}
+              onStartReached={onStartReached}
+              onStartReachedThreshold={0.1}
+              automaticallyAdjustKeyboardInsets
+              showsVerticalScrollIndicator={false}
+              ListFooterComponent={renderFooter}
+            />
+          </View>
+        )}
+      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}

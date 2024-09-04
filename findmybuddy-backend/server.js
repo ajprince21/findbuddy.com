@@ -28,7 +28,7 @@ app.use("/api/messages", messageRoutes);
 socketHandler(io);
 
 const PORT = process.env.PORT || 5000;
-const LOCAL_IP = "192.168.17.113"; // Replace with your actual local IP
+const LOCAL_IP = "192.168.8.109"; // Replace with your actual local IP
 server.listen(PORT, LOCAL_IP, () =>
   console.log(`Server running on http://${LOCAL_IP}:${PORT}`)
 );

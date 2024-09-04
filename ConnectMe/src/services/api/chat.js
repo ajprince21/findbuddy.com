@@ -4,8 +4,19 @@ const getUserChatList = () => {
   return axiosInstance.get(API_ENDPOINTS.CHAT_LIST);
 };
 
-const fetchMessages = (user_id) => {
+const fetchMessages = (queryParams) => {
+  const { user_id, skip, limit } = queryParams;
+  const params = {
+    skip,
+    limit,
+  };
   const url = `${API_ENDPOINTS.GET_MESSAGES}/${user_id}`;
+  return axiosInstance.get(url, { params });
+};
+
+const fetchMessagesCount = (queryParams) => {
+  const { user_id } = queryParams;
+  const url = `${API_ENDPOINTS.GET_MESSAGES_COUNT}/${user_id}`;
   return axiosInstance.get(url);
 };
 
@@ -18,4 +29,5 @@ export default {
   getUserChatList,
   fetchMessages,
   sendMessages,
+  fetchMessagesCount,
 };

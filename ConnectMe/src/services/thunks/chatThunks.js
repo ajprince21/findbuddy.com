@@ -18,8 +18,22 @@ export const getUserChatList = createAsyncThunk(
 export const fetchMessages = createAsyncThunk(
   "chat/messages",
   async (params, { rejectWithValue }) => {
+    console.log("Hey Got call");
     try {
       const response = await chatApi.fetchMessages(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Error whiles fetching messages");
+    }
+  }
+);
+
+// Get user Messages
+export const fetchMessagesCount = createAsyncThunk(
+  "chat/messages-count",
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await chatApi.fetchMessagesCount(params);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.message || "Error whiles fetching messages");

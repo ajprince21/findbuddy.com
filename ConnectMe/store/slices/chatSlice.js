@@ -3,6 +3,7 @@ import {
   fetchMessages,
   getUserChatList,
   sendMessages,
+  fetchMessagesCount,
 } from "../../src/services/thunks/chatThunks";
 
 const initialState = {
@@ -11,13 +12,23 @@ const initialState = {
   error: null,
   messages: [],
   messagesLoading: false,
+  loadingMore: false,
+  hasMoreMessages: true,
+  loadingMessageCount: false,
+  totalMessage: 0,
 };
 const chatSlice = createSlice({
   name: "chat",
   initialState: initialState,
   reducers: {
     addMessage: (state, action) => {
-      state.messages.push(action.payload);
+      state.messages.unshift(action.payload);
+    },
+    resetMessage: (state, action) => {
+      state.messages = [];
+    },
+    setLoading: (state, action) => {
+      state.loadingMore = action.payload;
     },
   },
 
@@ -38,18 +49,36 @@ const chatSlice = createSlice({
       })
       // Handling fetchMessages
       .addCase(fetchMessages.pending, (state, action) => {
-        state.messages = [];
         state.messagesLoading = true;
+        state.loadingMore = true;
       })
       .addCase(fetchMessages.fulfilled, (state, action) => {
-        state.messages = action.payload;
+        if (action.payload.length === 0) {
+          state.hasMoreMessages = false;
+        } else {
+          state.hasMoreMessages = true;
+        }
+        state.messages.push(...action.payload);
         state.messagesLoading = false;
+        state.loadingMore = false;
         state.error = null;
       })
       .addCase(fetchMessages.rejected, (state, action) => {
-        state.messages = [];
         state.messagesLoading = false;
+        state.loadingMore = false;
         state.error = action.payload;
+      })
+
+      // Fetch message count
+      .addCase(fetchMessagesCount.pending, (state, action) => {
+        state.loadingMessageCount = true;
+      })
+      .addCase(fetchMessagesCount.fulfilled, (state, action) => {
+        state.loadingMessageCount = false;
+        state.totalMessage = action.payload.total;
+      })
+      .addCase(fetchMessagesCount.rejected, (state, action) => {
+        state.loadingMessageCount = false;
       })
 
       // Send - Message
@@ -64,5 +93,5 @@ const chatSlice = createSlice({
       });
   },
 });
-export const { addMessage } = chatSlice.actions;
+export const { addMessage, resetMessage, setLoading } = chatSlice.actions;
 export default chatSlice.reducer;

@@ -32,6 +32,8 @@ const styles = StyleSheet.create({
   messageList: {
     paddingHorizontal: 10,
     paddingVertical: 5,
+    flexGrow:1,
+    minHeight:"100%",
   },
   messageBubble: {
     maxWidth: "75%",

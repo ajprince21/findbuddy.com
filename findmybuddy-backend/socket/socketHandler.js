@@ -43,10 +43,15 @@ module.exports = (io) => {
         });
 
         await newMessage.save();
-
         // Emit the message to the receiver and also to the sender for confirmation
-        io.to(receiver_id).emit("receive_message", newMessage);
-        io.to(sender_id).emit("receive_message", newMessage);
+        io.to(receiver_id).emit("receive_message", {
+          ...newMessage.toObject(),
+          sender: "them",
+        });
+        io.to(sender_id).emit("sent_message", {
+          ...newMessage.toObject(),
+          sender: "me",
+        });
       } catch (error) {
         console.error("Error sending message:", error);
       }
