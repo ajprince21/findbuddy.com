@@ -77,10 +77,12 @@ const ChattingScreen = ({ route }) => {
       socket.current.emit("joinRoom", loggedInUser._id);
 
       socket.current.on("receive_message", (newMessage) => {
+        console.log("MESSAGE RECEIVED");
         dispatch(addMessage(newMessage));
       });
 
       socket.current.on("sent_message", (sentMessage) => {
+        console.log("HEY MESSAGE SENT");
         dispatch(addMessage(sentMessage));
       });
 
@@ -98,7 +100,7 @@ const ChattingScreen = ({ route }) => {
     };
 
     setupSocket();
-  }, [dispatch, user._id]);
+  }, [user._id]);
 
   useEffect(() => {
     const onBeforeRemove = (event) => {
@@ -215,7 +217,7 @@ const ChattingScreen = ({ route }) => {
         </View>
       </View>
     );
-  }, [user]);
+  }, [user, typing]);
 
   const renderFooter = useCallback(() => {
     return <View>{(isLoadingMore || loading) && <ActivityIndicator />}</View>;

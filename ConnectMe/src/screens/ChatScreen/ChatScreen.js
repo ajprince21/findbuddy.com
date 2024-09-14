@@ -7,6 +7,9 @@ import HomeHeader from "../../components/HomeHeader/HomeHeader";
 import Colors from "../../utlis/Colors";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserChatList } from "../../services/thunks/chatThunks";
+import { useIsFocused } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
+import { registerForPushNotificationsAsync } from "../../utlis/registerPushNotification";
 
 const ChatScreen = () => {
   const [search, setSearch] = useState("");
@@ -15,7 +18,41 @@ const ChatScreen = () => {
   const chatList = useSelector((state) => state.chat.chatList);
   const chatListLoading = useSelector((state) => state.chat.chatListLoading);
   const error = useSelector((state) => state.chat.error);
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const isFocused = useIsFocused()
 
+  useEffect(() => {
+    const registerNotifications = async () => {
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        setExpoPushToken(token);
+      } 
+    };
+
+    if (isFocused) {
+      registerNotifications();
+
+      // Handle notifications that are received or selected
+      const notificationListener = Notifications.addNotificationReceivedListener(
+        (notification) => {
+          // Handle notification
+        }
+      );
+
+      const responseListener =
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          // Handle notification response
+        });
+
+      // Return cleanup function
+      return () => {
+        Notifications.removeNotificationSubscription(notificationListener);
+        Notifications.removeNotificationSubscription(responseListener);
+      };
+    }
+  }, [isFocused]);
+
+  console.log({ expoPushToken });
   useEffect(() => {
     dispatch(getUserChatList());
   }, []);

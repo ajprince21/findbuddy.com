@@ -4,7 +4,7 @@ import { store, persistor } from "./store/configureStore";
 import { PersistGate } from "redux-persist/integration/react";
 import { Provider } from "react-redux";
 import { useDevToolsPluginClient } from "expo/devtools";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function App() {
   const client = useDevToolsPluginClient("my-devtools-plugin");
